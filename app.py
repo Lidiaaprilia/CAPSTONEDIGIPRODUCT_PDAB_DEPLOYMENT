@@ -20,7 +20,7 @@ df = pd.read_csv(url)
 # Sidebar
 with st.sidebar:
     st.image('pollution.png')
-    
+
     st.title('🌡 Air Quality in Jakarta Panel')
 
     selected_option = st.sidebar.radio('Select an option:', ['Dashboard', 'Visualization', 'Prediction'])
@@ -52,14 +52,32 @@ if selected_option == 'Dashboard':
     </div>
     """, unsafe_allow_html=True)
 
-    st.dataframe(df_selected_year_sorted,
+    # Daftar stasiun yang tersedia secara terurut
+    station_options = sorted(df_selected_year_sorted['stasiun'].unique())
+
+    # Daftar kategori yang tersedia secara terurut
+    category_options = sorted(df_selected_year_sorted['categori'].unique())
+
+    # Multiselect untuk memilih stasiun
+    selected_stations = st.multiselect('Pilih Stasiun', options=station_options, default=station_options)
+
+    # Multiselect untuk memilih kategori
+    selected_categories = st.multiselect('Pilih Kategori', options=category_options, default=category_options)
+
+    # Filter DataFrame berdasarkan stasiun dan kategori yang dipilih
+    filtered_df = df_selected_year_sorted[(df_selected_year_sorted['stasiun'].isin(selected_stations)) & 
+                                      (df_selected_year_sorted['categori'].isin(selected_categories))]
+    
+    # Tampilkan jumlah data
+    st.write("Jumlah data:", len(filtered_df))
+
+    # Tampilkan DataFrame yang telah difilter
+    st.dataframe(filtered_df,
              column_order=["stasiun", "pm10", "so2", "co", "o3", "no2", "max", "critical", "categori"],
              hide_index=True,
              width=None, 
              height=None 
             )
-    selected_year_data = df[df['year'] == selected_year]
-
     st.markdown("""
     <div style='text-align: justify;'>
         <h3>Understanding the Data</h3>
