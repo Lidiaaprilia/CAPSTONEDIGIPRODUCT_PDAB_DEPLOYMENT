@@ -19,7 +19,7 @@ df = pd.read_csv(url)
 
 # Sidebar
 with st.sidebar:
-    st.image('pollution.png')
+    st.image('pollution.png', width=270)
     
     st.title('🌡 Air Quality in Jakarta Panel')
 
