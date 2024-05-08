@@ -31,7 +31,7 @@ if selected_option == 'Dashboard':
     df_selected_year = df[df['year'] == selected_year]
     df_selected_year_sorted = df_selected_year.sort_values(by="year", ascending=False)
 
-    st.markdown("<h1 style='text-align: center;'>Analisis Kualitas Udara dan Solusi Pengendalian Polusi DKI Jakarta pada Tahun 2019 - 2021</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>Analisis Kualitas Udara DKI Jakarta pada Tahun 2019 - 2021</h1>", unsafe_allow_html=True)
 
     st.markdown("""
     <div style='text-align: justify;'>
