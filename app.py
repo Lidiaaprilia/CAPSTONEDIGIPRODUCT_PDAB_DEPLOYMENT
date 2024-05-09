@@ -225,12 +225,12 @@ if selected_option == 'Visualisasi':
 if selected_option == 'Prediksi':
 
     # Option to select the view
-    options = ['Prediksi dengan Algoritma KNN', 'Visualisasi Distribusi Klaster']
-    selected_option3 = st.sidebar.selectbox('Pilih Opsi', options)
+    options = ['Prediksi dengan Algoritma KNN', 'Visualisasi Klaster']
+    selected_option3 = st.sidebar.selectbox('Pilih Opsi:', options)
 
 
     if selected_option3 == 'Prediksi dengan Algoritma KNN':
-        st.subheader('Prediksi Klaster Kualitas Udara di Jakarta Menggunakan Algoritma KNN')
+        st.markdown("<h1 style='text-align: center;'>Prediksi Klaster Kualitas Udara di Jakarta Menggunakan Algoritma KNN</h1>", unsafe_allow_html=True)
 
         # Load the model from the .sav file
         knn_clf = joblib.load('knn.sav')
@@ -291,32 +291,609 @@ if selected_option == 'Prediksi':
         # Update the prediction state with the message
         prediction_state.markdown(msg)
 
-    elif selected_option3 == 'Visualisasi Distribusi Klaster':
-        st.subheader('Visualisasi Label Klaster KMeans')
+    elif selected_option3 == 'Visualisasi Klaster':
+        # Menambahkan opsi pemilihan visualisasi
+        visualization_option = st.selectbox("Pilih Visualisasi:", ['Distribusi Klaster', 'Komposisi Klaster 0', 'Komposisi Klaster 1', 'Komposisi Klaster 2', 'Komposisi Klaster 3', 'Komposisi Klaster 4', 'Komposisi Klaster 5'])
 
-        df3 = pd.DataFrame(df2)
-        # Mengurutkan data berdasarkan jumlahnya dari yang terbesar ke yang terkecil
-        kmeans_label_counts = df3['kmeans_label'].value_counts().sort_values(ascending=False)
+        if visualization_option == 'Distribusi Klaster':
+            st.markdown("<h1 style='text-align: center;'>Visualisasi Distribusi Klaster</h1>", unsafe_allow_html=True)
 
-        # Membuat figure dan axes
-        fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+            df3 = pd.DataFrame(df2)
 
-        # Pie chart
-        # Memplot dengan data yang sudah diurutkan
-        axes[0].pie(kmeans_label_counts, labels=kmeans_label_counts.index, autopct='%1.1f%%', startangle=140)
-        axes[0].set_title('Pie Chart Persentase KMeans Label')
+            kmeans_label_counts = df3['kmeans_label'].value_counts()
 
-        # Bar chart
-        axes[1].bar(kmeans_label_counts.index, kmeans_label_counts.values, color='blue')
-        axes[1].set_title('Jumlah KMeans Label')
-        axes[1].set_xlabel('KMeans Label')
-        axes[1].set_ylabel('Jumlah')
+            # Membuat warna: biru untuk yang terbanyak, abu-abu untuk lainnya
+            colors = ['blue' if i == kmeans_label_counts.index[0] else 'grey' for i in kmeans_label_counts.index]
 
-        # Menambahkan caption di bawah bar plot
-        caption = "Jumlah data masing-masing cluster:"
-        for label, count in kmeans_label_counts.items():
+            # Membuat figure dan axes
+            fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+
+            # Pie chart
+            axes[0].pie(kmeans_label_counts, labels=kmeans_label_counts.index, autopct='%1.1f%%', startangle=140)
+            axes[0].set_title('Pie Chart Persentase KMeans Label')
+
+            # Bar chart
+            axes[1].bar(kmeans_label_counts.index, kmeans_label_counts.values, color=colors)
+            axes[1].set_title('Jumlah KMeans Label')
+            axes[1].set_xlabel('KMeans Label')
+            axes[1].set_ylabel('Jumlah')
+
+            # Menambahkan caption di bawah bar plot
+            caption = "Jumlah data masing-masing cluster:"
+            for label, count in kmeans_label_counts.items():
                 caption += f"\nCluster {label}: {count} data,"
 
-        # Menampilkan plot dan caption di Streamlit
-        st.pyplot(fig)
-        st.caption(caption)
+            # Menampilkan plot dan caption di Streamlit
+            st.pyplot(fig)
+            st.caption(caption)
+
+        elif visualization_option == 'Komposisi Klaster 0':
+            # Load data
+            url = 'https://raw.githubusercontent.com/Lidiaaprilia/CapstoneDigiProduct-Dataset/main/Cluster%200.csv'
+            df_clust0 = pd.read_csv(url)
+
+            # Menampilkan dataframe
+            st.subheader('DataFrame Klaster 0')
+            st.write(df_clust0)
+
+            # Tampilkan jumlah data
+            st.write("Jumlah data Klaster 0:", len(df_clust0))
+
+            # Membagi layout menjadi 2 kolom
+            col1, col2 = st.columns(2)
+
+            # Menampilkan bar chart jumlah data per kolom 'stasiun' dan 'critical' di kolom 1
+            with col1:
+                st.subheader("Visualisasi Jumlah Data per Stasiun dan Critical")
+
+                # Plot stasiun
+                fig, ax = plt.subplots()
+                stasiun_counts = df_clust0['stasiun'].value_counts()
+                bars = stasiun_counts.plot(kind='bar', color=['red', 'grey', 'grey', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Stasiun')
+                ax.set_xlabel('Stasiun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Stasiun: 0 = DKI1 (Bunderan HI), 1 = DKI2 (Kelapa Gading), 2 = DKI3 (Jagakarsa), 3 = DKI4 (Lubang Buaya), dan 4 = DKI5 (Kebon Jeruk).')
+    
+                # Plot critical
+                fig, ax = plt.subplots()
+                critical_counts = df_clust0['critical'].value_counts()
+                bars = critical_counts.plot(kind='bar', color=['cyan', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Critical')
+                ax.set_xlabel('Critical')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Critical: 0 = pm10, 1 = so2, 2 = co, 3 = o3, dan 4 = no2.')
+
+            # Menampilkan bar chart jumlah data per kolom 'tahun' dan 'categori' di kolom 2
+            with col2:
+                st.subheader("Visualisasi Jumlah Data per Tahun dan Categori")
+
+                # Plot tahun
+                fig, ax = plt.subplots()
+                tahun_counts = df_clust0['year'].value_counts()
+                bars = tahun_counts.plot(kind='bar', color=['gold', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Tahun')
+                ax.set_xlabel('Tahun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+    
+                # Plot categori
+                fig, ax = plt.subplots()
+                categori_counts = df_clust0['categori'].value_counts()
+                bars = categori_counts.plot(kind='bar', color=['lightsalmon', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Categori')
+                ax.set_xlabel('Categori')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Kategori: 0 = baik, 1 = sedang, 2 = tidak sehat, dan 3 = sangat tidak sehat.')
+
+            # Menghitung rata-rata pm10, so2, co, o3, dan no2
+            st.write("Rata-rata parameter polusi:")
+            st.write("- Rata-rata PM10:", df_clust0['pm10'].mean())
+            st.write("- Rata-rata SO2:", df_clust0['so2'].mean())
+            st.write("- Rata-rata CO:", df_clust0['co'].mean())
+            st.write("- Rata-rata O3:", df_clust0['o3'].mean())
+            st.write("- Rata-rata NO2:", df_clust0['no2'].mean())
+
+            with st.expander('Memahami Visualisasi', expanded=True):
+                st.write('''
+                * Air Quality Index: [AQI](https://plutusias.com/air-quality-index/).
+                *   Berdasarkan hasil rata-rata dari PM10, parameter polusi ini masuk ke dalam kategori AQI 'Memuaskan'.
+                *   Berdasarkan hasil rata-rata dari SO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Berdasarkan hasil rata-rata dari CO, parameter polusi ini masuk ke dalam kategori AQI 'Buruk'.
+                *   Berdasarkan hasil rata-rata dari O3, parameter polusi ini masuk ke dalam kategori AQI 'Cukup tercemar'.
+                *   Berdasarkan hasil rata-rata dari NO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Stasiun DKI5 (Kebon Jeruk) menjadi stasiun pengukuran terbanyak diantara stasiun pengukuran lainnya pada cluster 0.
+                *   Kategori 'Tidak Sehat' menjadi kategori udara terbanyak diantara kategori udara lainnya pada cluster 0.
+                *   Tahun 2019 menjadi tahun pengukuran terbanyak diantara tahun pengukuran lainnya pada cluster 0.
+                ''')
+
+        elif visualization_option == 'Komposisi Klaster 1':
+            # Load data
+            url = 'https://raw.githubusercontent.com/Lidiaaprilia/CapstoneDigiProduct-Dataset/main/Cluster%201.csv'
+            df_clust1 = pd.read_csv(url)
+
+            # Menampilkan dataframe
+            st.subheader('DataFrame Klaster 1')
+            st.write(df_clust1)
+
+            # Tampilkan jumlah data
+            st.write("Jumlah data Klaster 1:", len(df_clust1))
+
+            # Membagi layout menjadi 2 kolom
+            col1, col2 = st.columns(2)
+
+            # Menampilkan bar chart jumlah data per kolom 'stasiun' dan 'critical' di kolom 1
+            with col1:
+                st.subheader("Visualisasi Jumlah Data per Stasiun dan Critical")
+
+                # Plot stasiun
+                fig, ax = plt.subplots()
+                stasiun_counts = df_clust1['stasiun'].value_counts()
+                bars = stasiun_counts.plot(kind='bar', color=['red', 'grey', 'grey', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Stasiun')
+                ax.set_xlabel('Stasiun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Stasiun: 0 = DKI1 (Bunderan HI), 1 = DKI2 (Kelapa Gading), 2 = DKI3 (Jagakarsa), 3 = DKI4 (Lubang Buaya), dan 4 = DKI5 (Kebon Jeruk).')
+    
+                # Plot critical
+                fig, ax = plt.subplots()
+                critical_counts = df_clust1['critical'].value_counts()
+                bars = critical_counts.plot(kind='bar', color=['cyan', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Critical')
+                ax.set_xlabel('Critical')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Critical: 0 = pm10, 1 = so2, 2 = co, 3 = o3, dan 4 = no2.')
+
+            # Menampilkan bar chart jumlah data per kolom 'tahun' dan 'categori' di kolom 2
+            with col2:
+                st.subheader("Visualisasi Jumlah Data per Tahun dan Categori")
+
+                # Plot tahun
+                fig, ax = plt.subplots()
+                tahun_counts = df_clust1['year'].value_counts()
+                bars = tahun_counts.plot(kind='bar', color=['gold', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Tahun')
+                ax.set_xlabel('Tahun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+    
+                # Plot categori
+                fig, ax = plt.subplots()
+                categori_counts = df_clust1['categori'].value_counts()
+                bars = categori_counts.plot(kind='bar', color=['lightsalmon', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Categori')
+                ax.set_xlabel('Categori')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Kategori: 0 = baik, 1 = sedang, 2 = tidak sehat, dan 3 = sangat tidak sehat.')
+
+            # Menghitung rata-rata pm10, so2, co, o3, dan no2
+            st.write("Rata-rata parameter polusi:")
+            st.write("- Rata-rata PM10:", df_clust1['pm10'].mean())
+            st.write("- Rata-rata SO2:", df_clust1['so2'].mean())
+            st.write("- Rata-rata CO:", df_clust1['co'].mean())
+            st.write("- Rata-rata O3:", df_clust1['o3'].mean())
+            st.write("- Rata-rata NO2:", df_clust1['no2'].mean())
+
+            with st.expander('Memahami Visualisasi', expanded=True):
+                st.write('''
+                * Air Quality Index: [AQI](https://plutusias.com/air-quality-index/).
+                *   Berdasarkan hasil rata-rata dari PM10, parameter polusi ini masuk ke dalam kategori AQI 'Memuaskan'.
+                *   Berdasarkan hasil rata-rata dari SO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Berdasarkan hasil rata-rata dari CO, parameter polusi ini masuk ke dalam kategori AQI 'Sangat Buruk'.
+                *   Berdasarkan hasil rata-rata dari O3, parameter polusi ini masuk ke dalam kategori AQI 'Memuaskan'.
+                *   Berdasarkan hasil rata-rata dari NO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Stasiun DKI1 (Bundaran HI) menjadi stasiun pengukuran terbanyak diantara stasiun pengukuran lainnya pada cluster 1.
+                *   Kategori 'Sedang' menjadi kategori udara terbanyak diantara kategori udara lainnya pada cluster 1.
+                *   Tahun 2019 menjadi tahun pengukuran terbanyak diantara tahun pengukuran lainnya pada cluster 1.
+                ''')
+
+
+        elif visualization_option == 'Komposisi Klaster 2':
+            # Load data
+            url = 'https://raw.githubusercontent.com/Lidiaaprilia/CapstoneDigiProduct-Dataset/main/Cluster%202.csv'
+            df_clust2 = pd.read_csv(url)
+
+            # Menampilkan dataframe
+            st.subheader('DataFrame Klaster 2')
+            st.write(df_clust2)
+
+            # Tampilkan jumlah data
+            st.write("Jumlah data Klaster 2:", len(df_clust2))
+
+            # Membagi layout menjadi 2 kolom
+            col1, col2 = st.columns(2)
+
+            # Menampilkan bar chart jumlah data per kolom 'stasiun' dan 'critical' di kolom 1
+            with col1:
+                st.subheader("Visualisasi Jumlah Data per Stasiun dan Critical")
+
+                # Plot stasiun
+                fig, ax = plt.subplots()
+                stasiun_counts = df_clust2['stasiun'].value_counts()
+                bars = stasiun_counts.plot(kind='bar', color=['red', 'grey', 'grey', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Stasiun')
+                ax.set_xlabel('Stasiun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Stasiun: 0 = DKI1 (Bunderan HI), 1 = DKI2 (Kelapa Gading), 2 = DKI3 (Jagakarsa), 3 = DKI4 (Lubang Buaya), dan 4 = DKI5 (Kebon Jeruk).')
+    
+                # Plot critical
+                fig, ax = plt.subplots()
+                critical_counts = df_clust2['critical'].value_counts()
+                bars = critical_counts.plot(kind='bar', color=['cyan', 'grey', 'grey', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Critical')
+                ax.set_xlabel('Critical')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Critical: 0 = pm10, 1 = so2, 2 = co, 3 = o3, dan 4 = no2.')
+
+            # Menampilkan bar chart jumlah data per kolom 'tahun' dan 'categori' di kolom 2
+            with col2:
+                st.subheader("Visualisasi Jumlah Data per Tahun dan Categori")
+
+                # Plot tahun
+                fig, ax = plt.subplots()
+                tahun_counts = df_clust2['year'].value_counts()
+                bars = tahun_counts.plot(kind='bar', color=['gold', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Tahun')
+                ax.set_xlabel('Tahun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+    
+                # Plot categori
+                fig, ax = plt.subplots()
+                categori_counts = df_clust2['categori'].value_counts()
+                bars = categori_counts.plot(kind='bar', color=['lightsalmon', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Categori')
+                ax.set_xlabel('Categori')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Kategori: 0 = baik, 1 = sedang, 2 = tidak sehat, dan 3 = sangat tidak sehat.')
+
+            # Menghitung rata-rata pm10, so2, co, o3, dan no2
+            st.write("Rata-rata parameter polusi:")
+            st.write("- Rata-rata PM10:", df_clust2['pm10'].mean())
+            st.write("- Rata-rata SO2:", df_clust2['so2'].mean())
+            st.write("- Rata-rata CO:", df_clust2['co'].mean())
+            st.write("- Rata-rata O3:", df_clust2['o3'].mean())
+            st.write("- Rata-rata NO2:", df_clust2['no2'].mean())
+
+            with st.expander('Memahami Visualisasi', expanded=True):
+                st.write('''
+                * Air Quality Index: [AQI](https://plutusias.com/air-quality-index/).
+                *   Berdasarkan hasil rata-rata dari PM10, parameter polusi ini masuk ke dalam kategori AQI 'Memuaskan'.
+                *   Berdasarkan hasil rata-rata dari SO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Berdasarkan hasil rata-rata dari CO, parameter polusi ini masuk ke dalam kategori AQI 'Berbahaya/Parah'.
+                *   Berdasarkan hasil rata-rata dari O3, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Berdasarkan hasil rata-rata dari NO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Stasiun DKI5 (Kebon Jeruk) menjadi stasiun pengukuran terbanyak diantara stasiun pengukuran lainnya pada cluster 2.
+                *   Kategori 'Sedang' menjadi kategori udara terbanyak diantara kategori udara lainnya pada cluster 2.
+                *   Tahun 2020 menjadi tahun pengukuran terbanyak diantara tahun pengukuran lainnya pada cluster 2.
+                ''')
+
+        elif visualization_option == 'Komposisi Klaster 3':
+            # Load data
+            url = 'https://raw.githubusercontent.com/Lidiaaprilia/CapstoneDigiProduct-Dataset/main/Cluster%203.csv'
+            df_clust3 = pd.read_csv(url)
+
+            # Menampilkan dataframe
+            st.subheader('DataFrame Klaster 3')
+            st.write(df_clust3)
+
+            # Tampilkan jumlah data
+            st.write("Jumlah data Klaster 3:", len(df_clust3))
+
+            # Membagi layout menjadi 2 kolom
+            col1, col2 = st.columns(2)
+
+            # Menampilkan bar chart jumlah data per kolom 'stasiun' dan 'critical' di kolom 1
+            with col1:
+                st.subheader("Visualisasi Jumlah Data per Stasiun dan Critical")
+
+                # Plot stasiun
+                fig, ax = plt.subplots()
+                stasiun_counts = df_clust3['stasiun'].value_counts()
+                bars = stasiun_counts.plot(kind='bar', color=['red', 'grey', 'grey', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Stasiun')
+                ax.set_xlabel('Stasiun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Stasiun: 0 = DKI1 (Bunderan HI), 1 = DKI2 (Kelapa Gading), 2 = DKI3 (Jagakarsa), 3 = DKI4 (Lubang Buaya), dan 4 = DKI5 (Kebon Jeruk).')
+    
+                # Plot critical
+                fig, ax = plt.subplots()
+                critical_counts = df_clust3['critical'].value_counts()
+                bars = critical_counts.plot(kind='bar', color=['cyan', 'grey', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Critical')
+                ax.set_xlabel('Critical')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Critical: 0 = pm10, 1 = so2, 2 = co, 3 = o3, dan 4 = no2.')
+
+            # Menampilkan bar chart jumlah data per kolom 'tahun' dan 'categori' di kolom 2
+            with col2:
+                st.subheader("Visualisasi Jumlah Data per Tahun dan Categori")
+
+                # Plot tahun
+                fig, ax = plt.subplots()
+                tahun_counts = df_clust3['year'].value_counts()
+                bars = tahun_counts.plot(kind='bar', color=['gold', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Tahun')
+                ax.set_xlabel('Tahun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+    
+                # Plot categori
+                fig, ax = plt.subplots()
+                categori_counts = df_clust3['categori'].value_counts()
+                bars = categori_counts.plot(kind='bar', color=['lightsalmon', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Categori')
+                ax.set_xlabel('Categori')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Kategori: 0 = baik, 1 = sedang, 2 = tidak sehat, dan 3 = sangat tidak sehat.')
+
+            # Menghitung rata-rata pm10, so2, co, o3, dan no2
+            st.write("Rata-rata parameter polusi:")
+            st.write("- Rata-rata PM10:", df_clust3['pm10'].mean())
+            st.write("- Rata-rata SO2:", df_clust3['so2'].mean())
+            st.write("- Rata-rata CO:", df_clust3['co'].mean())
+            st.write("- Rata-rata O3:", df_clust3['o3'].mean())
+            st.write("- Rata-rata NO2:", df_clust3['no2'].mean())
+
+            with st.expander('Memahami Visualisasi', expanded=True):
+                st.write('''
+                * Air Quality Index: [AQI](https://plutusias.com/air-quality-index/).
+                *   Berdasarkan hasil rata-rata dari PM10, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Berdasarkan hasil rata-rata dari SO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Berdasarkan hasil rata-rata dari CO, parameter polusi ini masuk ke dalam kategori AQI 'Buruk'.
+                *   Berdasarkan hasil rata-rata dari O3, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Berdasarkan hasil rata-rata dari NO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Stasiun DKI5 (Kebon Jeruk) menjadi stasiun pengukuran terbanyak diantara stasiun pengukuran lainnya pada cluster 3.
+                *   Kategori 'Baik' menjadi kategori udara terbanyak diantara kategori udara lainnya pada cluster 3.
+                *   Tahun 2020 menjadi tahun pengukuran terbanyak diantara tahun pengukuran lainnya pada cluster 3.
+                ''')
+            
+        elif visualization_option == 'Komposisi Klaster 4':
+            # Load data
+            url = 'https://raw.githubusercontent.com/Lidiaaprilia/CapstoneDigiProduct-Dataset/main/Cluster%204.csv'
+            df_clust4 = pd.read_csv(url)
+
+            # Menampilkan dataframe
+            st.subheader('DataFrame Klaster 4')
+            st.write(df_clust4)
+
+            # Tampilkan jumlah data
+            st.write("Jumlah data Klaster 4:", len(df_clust4))
+
+            # Membagi layout menjadi 2 kolom
+            col1, col2 = st.columns(2)
+
+            # Menampilkan bar chart jumlah data per kolom 'stasiun' dan 'critical' di kolom 1
+            with col1:
+                st.subheader("Visualisasi Jumlah Data per Stasiun dan Critical")
+
+                # Plot stasiun
+                fig, ax = plt.subplots()
+                stasiun_counts = df_clust4['stasiun'].value_counts()
+                bars = stasiun_counts.plot(kind='bar', color=['red', 'grey', 'grey', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Stasiun')
+                ax.set_xlabel('Stasiun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Stasiun: 0 = DKI1 (Bunderan HI), 1 = DKI2 (Kelapa Gading), 2 = DKI3 (Jagakarsa), 3 = DKI4 (Lubang Buaya), dan 4 = DKI5 (Kebon Jeruk).')
+    
+                # Plot critical
+                fig, ax = plt.subplots()
+                critical_counts = df_clust4['critical'].value_counts()
+                bars = critical_counts.plot(kind='bar', color=['cyan', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Critical')
+                ax.set_xlabel('Critical')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Critical: 0 = pm10, 1 = so2, 2 = co, 3 = o3, dan 4 = no2.')
+
+            # Menampilkan bar chart jumlah data per kolom 'tahun' dan 'categori' di kolom 2
+            with col2:
+                st.subheader("Visualisasi Jumlah Data per Tahun dan Categori")
+
+                # Plot tahun
+                fig, ax = plt.subplots()
+                tahun_counts = df_clust4['year'].value_counts()
+                bars = tahun_counts.plot(kind='bar', color=['gold', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Tahun')
+                ax.set_xlabel('Tahun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+    
+                # Plot categori
+                fig, ax = plt.subplots()
+                categori_counts = df_clust4['categori'].value_counts()
+                bars = categori_counts.plot(kind='bar', color=['lightsalmon', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Categori')
+                ax.set_xlabel('Categori')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Kategori: 0 = baik, 1 = sedang, 2 = tidak sehat, dan 3 = sangat tidak sehat.')
+
+            # Menghitung rata-rata pm10, so2, co, o3, dan no2
+            st.write("Rata-rata parameter polusi:")
+            st.write("- Rata-rata PM10:", df_clust4['pm10'].mean())
+            st.write("- Rata-rata SO2:", df_clust4['so2'].mean())
+            st.write("- Rata-rata CO:", df_clust4['co'].mean())
+            st.write("- Rata-rata O3:", df_clust4['o3'].mean())
+            st.write("- Rata-rata NO2:", df_clust4['no2'].mean())
+
+            with st.expander('Memahami Visualisasi', expanded=True):
+                st.write('''
+                * Air Quality Index: [AQI](https://plutusias.com/air-quality-index/).
+                *   Berdasarkan hasil rata-rata dari PM10, parameter polusi ini masuk ke dalam kategori AQI 'Memuaskan'.
+                *   Berdasarkan hasil rata-rata dari SO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Berdasarkan hasil rata-rata dari CO, parameter polusi ini masuk ke dalam kategori AQI 'Buruk'.
+                *   Berdasarkan hasil rata-rata dari O3, parameter polusi ini masuk ke dalam kategori AQI 'Memuaskan'.
+                *   Berdasarkan hasil rata-rata dari NO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Stasiun DKI2 (Kelapa Gading) menjadi stasiun pengukuran terbanyak diantara stasiun pengukuran lainnya pada cluster 4.
+                *   Kategori 'Sedang' menjadi kategori udara terbanyak diantara kategori udara lainnya pada cluster 4.
+                *   Tahun 2019 menjadi tahun pengukuran terbanyak diantara tahun pengukuran lainnya pada cluster 4.
+                ''')
+
+        elif visualization_option == 'Komposisi Klaster 5':
+            # Load data
+            url = 'https://raw.githubusercontent.com/Lidiaaprilia/CapstoneDigiProduct-Dataset/main/Cluster%205.csv'
+            df_clust5 = pd.read_csv(url)
+
+            # Menampilkan dataframe
+            st.subheader('DataFrame Klaster 5')
+            st.write(df_clust5)
+
+            # Tampilkan jumlah data
+            st.write("Jumlah data Klaster 5:", len(df_clust5))
+
+            # Membagi layout menjadi 2 kolom
+            col1, col2 = st.columns(2)
+
+            # Menampilkan bar chart jumlah data per kolom 'stasiun' dan 'critical' di kolom 1
+            with col1:
+                st.subheader("Visualisasi Jumlah Data per Stasiun dan Critical")
+
+                # Plot stasiun
+                fig, ax = plt.subplots()
+                stasiun_counts = df_clust5['stasiun'].value_counts()
+                bars = stasiun_counts.plot(kind='bar', color=['red', 'grey', 'grey', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Stasiun')
+                ax.set_xlabel('Stasiun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Stasiun: 0 = DKI1 (Bunderan HI), 1 = DKI2 (Kelapa Gading), 2 = DKI3 (Jagakarsa), 3 = DKI4 (Lubang Buaya), dan 4 = DKI5 (Kebon Jeruk).')
+    
+                # Plot critical
+                fig, ax = plt.subplots()
+                critical_counts = df_clust5['critical'].value_counts()
+                bars = critical_counts.plot(kind='bar', color=['cyan', 'grey', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Critical')
+                ax.set_xlabel('Critical')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Critical: 0 = pm10, 1 = so2, 2 = co, 3 = o3, dan 4 = no2.')
+
+            # Menampilkan bar chart jumlah data per kolom 'tahun' dan 'categori' di kolom 2
+            with col2:
+                st.subheader("Visualisasi Jumlah Data per Tahun dan Categori")
+
+                # Plot tahun
+                fig, ax = plt.subplots()
+                tahun_counts = df_clust5['year'].value_counts()
+                bars = tahun_counts.plot(kind='bar', color=['gold', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Tahun')
+                ax.set_xlabel('Tahun')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+    
+                # Plot categori
+                fig, ax = plt.subplots()
+                categori_counts = df_clust5['categori'].value_counts()
+                bars = categori_counts.plot(kind='bar', color=['lightsalmon', 'grey', 'grey'], ax=ax)
+                ax.set_title('Jumlah per Categori')
+                ax.set_xlabel('Categori')
+                ax.set_ylabel('Jumlah')
+                for bar in bars.patches:
+                    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3, str(int(bar.get_height())),
+                    ha='center', va='bottom')
+                st.pyplot(fig)
+                st.caption('Kategori: 0 = baik, 1 = sedang, 2 = tidak sehat, dan 3 = sangat tidak sehat.')
+
+            # Menghitung rata-rata pm10, so2, co, o3, dan no2
+            st.write("Rata-rata parameter polusi:")
+            st.write("- Rata-rata PM10:", df_clust5['pm10'].mean())
+            st.write("- Rata-rata SO2:", df_clust5['so2'].mean())
+            st.write("- Rata-rata CO:", df_clust5['co'].mean())
+            st.write("- Rata-rata O3:", df_clust5['o3'].mean())
+            st.write("- Rata-rata NO2:", df_clust5['no2'].mean())
+
+            with st.expander('Memahami Visualisasi', expanded=True):
+                st.write('''
+                * Air Quality Index: [AQI](https://plutusias.com/air-quality-index/).
+                *   Berdasarkan hasil rata-rata dari PM10, parameter polusi ini masuk ke dalam kategori AQI 'Memuaskan'.
+                *   Berdasarkan hasil rata-rata dari SO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Berdasarkan hasil rata-rata dari CO, parameter polusi ini masuk ke dalam kategori AQI 'Buruk'.
+                *   Berdasarkan hasil rata-rata dari O3, parameter polusi ini masuk ke dalam kategori AQI 'Memuaskan'.
+                *   Berdasarkan hasil rata-rata dari NO2, parameter polusi ini masuk ke dalam kategori AQI 'Baik'.
+                *   Stasiun DKI4 (Lubang Buaya) menjadi stasiun pengukuran terbanyak diantara stasiun pengukuran lainnya pada cluster 5.
+                *   Kategori 'Sedang' menjadi kategori udara terbanyak diantara kategori udara lainnya pada cluster 5.
+                *   Tahun 2020 menjadi tahun pengukuran terbanyak diantara tahun pengukuran lainnya pada cluster 5.
+                ''')
