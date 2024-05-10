@@ -266,30 +266,31 @@ if selected_option == 'Prediksi':
             'year': [year]
         })
 
-        # This is how to dynamically change text
-        prediction_state = st.markdown('Calculating...')
-
         # Perform prediction using the loaded model
         y_pred = knn_clf.predict(data)
 
         # Determine the prediction message based on the predicted label
         if y_pred[0] == 0:
             msg = 'Data Kualitas Udara ini berada pada Klaster 0'
+            st.success(msg)
         elif y_pred[0] == 1:
             msg = 'Data kualitas udara ini berada pada Klaster 1'
+            st.success(msg)
         elif y_pred[0] == 2:
             msg = 'Data kualitas udara ini berada pada Klaster 2'
+            st.success(msg)
         elif y_pred[0] == 3:
             msg = 'Data kualitas udara ini berada pada Klaster 3'
+            st.success(msg)
         elif y_pred[0] == 4:
             msg = 'Data kualitas udara ini berada pada Klaster 4'
+            st.success(msg)
         elif y_pred[0] == 5:
             msg = 'Data kualitas udara ini berada pada Klaster 5'
+            st.success(msg)
         else:
             msg = 'Tidak ada Data'
-
-        # Update the prediction state with the message
-        prediction_state.markdown(msg)
+            st.error(msg)
 
     elif selected_option3 == 'Visualisasi Klaster':
         # Menambahkan opsi pemilihan visualisasi
